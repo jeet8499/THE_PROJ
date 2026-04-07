@@ -1,0 +1,41 @@
+env_id: "GoldTrading-XAU/USD-v4"
+spec_version: "openenv-v1"
+version: "4.0.0"
+metadata:
+  name: "Gold Trading Decision Simulator — Hybrid RL + LLM"
+  description: "Multi-step XAU/USD trading environment. GARCH simulation. Gymnasium API. 3 distinct graded tasks."
+  domain: "finance"
+  tags: [openenv, gold-trading, xau-usd, gymnasium, hybrid-llm]
+gymnasium:
+  compliant: true
+  reset_signature: "reset(seed=None) -> (obs_dict, info)"
+  step_signature: "step(action) -> (obs, reward, terminated, truncated, info)"
+tasks:
+  - id: "task_easy"
+    name: "Direction-only signal detection"
+    difficulty: "easy"
+    noise_level: 0.10
+    episode_len: 20
+    grader: "env.tasks.EasyGrader"
+    objective: "Predict buy/sell/hold aligned with market regime. Score = direction accuracy."
+    score_range: [0.0, 1.0]
+  - id: "task_medium"
+    name: "Full trade: direction + stop-loss placement"
+    difficulty: "medium"
+    noise_level: 0.30
+    episode_len: 30
+    grader: "env.tasks.MediumGrader"
+    objective: "Correct direction + SL placement quality + TP hit. Score = 50/30/20."
+    score_range: [0.0, 1.0]
+  - id: "task_hard"
+    name: "Multi-trade with drawdown constraint DD<2%"
+    difficulty: "hard"
+    noise_level: 0.55
+    episode_len: 40
+    grader: "env.tasks.HardGrader"
+    objective: "Profitable multi-trade episode with max drawdown < 2%."
+    score_range: [0.0, 1.0]
+reward:
+  shaped: true
+  range: [-1.0, 2.0]
+  components: [realized_pnl, rr_discipline, tp_bonus, sl_penalty, trend_penalty, drawdown_penalty, episode_bonus]
